@@ -11,6 +11,7 @@ import java.util.Map;
 
 import static co.unruly.control.pair.Maps.entry;
 import static co.unruly.control.pair.Maps.mapOf;
+import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.AVAILABLE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -34,7 +35,7 @@ public class LibraryTest {
         given(mapper.readObject(anyString(), eq(Enquiry.class)))
             .willReturn(new Enquiry("user", "password", "123"));
         given(auth.authenticate("Tom", "letmein")).willReturn(true);
-        given(borrowings.markAsBorrowed(book)).willReturn(true);
+        given(borrowings.markAsBorrowed(book)).willReturn(AVAILABLE);
 
         assertThat(
             library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
