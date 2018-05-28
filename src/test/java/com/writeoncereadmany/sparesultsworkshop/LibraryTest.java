@@ -20,7 +20,7 @@ import static org.mockito.Mockito.mock;
 
 public class LibraryTest {
 
-    private static final Book book = new Book("123", "How To Cook For Forty Humans", "Kang", "<elided>");
+    private static final Book book = new Book("123", "How To Cook For Forty Humans", "Kang", "lots of words");
 
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final Authenticator auth = mock(Authenticator.class);
@@ -38,6 +38,6 @@ public class LibraryTest {
 
         assertThat(
             library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
-            is("<elided>"));
+            is("lots of words"));
     }
 }
