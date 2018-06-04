@@ -25,16 +25,17 @@ public class LibraryTest {
 
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final Authenticator auth = mock(Authenticator.class);
-    private final Map<String, Book> books = mapOf(entry(book.isbn, book));
+    private final Map<String, Book> books = mapOf(entry(book.getIsbn(), book));
     private final Borrowings borrowings = mock(Borrowings.class);
 
     private final Library library = new Library(mapper, auth, books, borrowings);
 
     @Test
     public void canBorrowABook() {
-        given(mapper.readObject(anyString(), eq(Enquiry.class)))
-            .willReturn(new Enquiry("user", "password", "123"));
-        given(auth.authenticate("Tom", "letmein")).willReturn(true);
+        Enquiry enquiry = new Enquiry("user", "password", "123");
+        given(mapper.readObject(anyString()))
+            .willReturn(enquiry);
+        given(auth.authenticate(enquiry)).willReturn(true);
         given(borrowings.markAsBorrowed(book)).willReturn(AVAILABLE);
 
         assertThat(
