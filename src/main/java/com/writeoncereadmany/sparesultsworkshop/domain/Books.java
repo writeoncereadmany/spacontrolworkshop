@@ -1,10 +1,6 @@
 package com.writeoncereadmany.sparesultsworkshop.domain;
 
-import co.unruly.control.Optionals;
-import co.unruly.control.result.Result;
-
 import java.util.Map;
-import java.util.Optional;
 
 public class Books {
 
@@ -16,13 +12,5 @@ public class Books {
 
     public Book get(Enquiry enquiry) {
         return books.get(enquiry.getIsbn());
-    }
-
-    public Result<Book, String> get2(Enquiry enquiry) {
-        return Optionals.either(
-            Optional.ofNullable(books.get(enquiry.getIsbn())),
-            book -> Result.success(book),
-            () -> Result.failure("Book not found")
-        );
     }
 }
