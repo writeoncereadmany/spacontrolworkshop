@@ -39,7 +39,7 @@ public class LibraryTest {
         given(borrowings.markAsBorrowed(book)).willReturn(AVAILABLE);
 
         assertThat(
-            library.pipeBorrowNoErrorHandling("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
             is("lots of words"));
 
         verify(borrowings).markAsBorrowed(book);
