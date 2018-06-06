@@ -11,7 +11,6 @@ import java.util.Map;
 
 import static co.unruly.control.pair.Maps.entry;
 import static co.unruly.control.pair.Maps.mapOf;
-import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.ALREADY_WITHDRAWN;
 import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.AVAILABLE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -39,51 +38,9 @@ public class LibraryTest {
         given(borrowings.markAsBorrowed(book)).willReturn(AVAILABLE);
 
         assertThat(
-            library.pipeBorrowNoErrorHandling("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
             is("lots of words"));
 
         verify(borrowings).markAsBorrowed(book);
-    }
-
-    @Test
-    public void reportsMalformedRequest() {
-        given(mapper.readObject(anyString())).willThrow(new RuntimeException("Cannot parse object"));
-
-        assertThat(
-            library.borrow("i would like a book plz kthxbai"),
-            is("Malformed request"));
-    }
-
-    @Test
-    public void rejectsUnauthorizedUser() {
-        given(mapper.readObject(anyString())).willReturn(enquiry);
-        given(auth.authenticate(enquiry)).willReturn(false);
-
-        assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
-            is("Unauthorized"));
-    }
-
-    @Test
-    public void cannotLendUnknownBook() {
-        Enquiry enquiry = new Enquiry("Tom", "letmein", "456");
-        given(mapper.readObject(anyString())).willReturn(enquiry);
-        given(auth.authenticate(enquiry)).willReturn(true);
-
-        assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
-            is("Cannot find book"));
-    }
-
-    @Test
-    public void cannotLendBookIfAlreadyWithdrawn() {
-        given(mapper.readObject(anyString())).willReturn(enquiry);
-        given(auth.authenticate(enquiry)).willReturn(true);
-        given(borrowings.markAsBorrowed(book)).willReturn(ALREADY_WITHDRAWN);
-
-        assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
-            is("Book already withdrawn"));
-
     }
 }
