@@ -3,6 +3,7 @@ package com.writeoncereadmany.sparesultsworkshop;
 import com.writeoncereadmany.sparesultsworkshop.domain.Book;
 import com.writeoncereadmany.sparesultsworkshop.domain.Books;
 import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
+import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal;
 import com.writeoncereadmany.sparesultsworkshop.domain.Enquiry;
 import com.writeoncereadmany.sparesultsworkshop.util.Authenticator;
 import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
@@ -29,10 +30,23 @@ public class Library {
     }
 
     public String borrow(String request) {
-        Enquiry enquiry = mapper.readObject(request);
-        Book book = books.get(enquiry);
-        borrowings.markAsBorrowed(book);
-        return book.getContent();
+        try {
+            Enquiry enquiry = mapper.readObject(request);
+            if(!authenticator.authenticate(enquiry)) {
+                return "Unauthorized";
+            }
+            Book book = books.get(enquiry);
+            if(book == null) {
+                return "Cannot find book";
+            }
+            Withdrawal withdrawalStatus = borrowings.markAsBorrowed(book);
+            if(withdrawalStatus == Withdrawal.ALREADY_WITHDRAWN) {
+                return "Book already withdrawn";
+            }
+            return book.getContent();
+        } catch (RuntimeException ex) {
+            return "Malformed request";
+        }
     }
 
     /**
