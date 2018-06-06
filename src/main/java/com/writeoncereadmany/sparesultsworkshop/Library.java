@@ -9,9 +9,11 @@ import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
 import java.util.Map;
 
 import static co.unruly.control.Piper.pipe;
+import static co.unruly.control.result.Introducers.*;
 import static co.unruly.control.result.Resolvers.collapse;
 import static co.unruly.control.result.Transformers.attempt;
 import static co.unruly.control.result.Transformers.onSuccess;
+import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.ALREADY_WITHDRAWN;
 
 public class Library {
 
@@ -34,7 +36,12 @@ public class Library {
 
     public String borrow(String request) {
         return pipe(request)
-            // We need to do various transformations on our data here
+            .then(tryTo(mapper::readObject, __ -> "Malformed request"))
+            .then(attempt(ifFalse(authenticator::authenticate, "Unauthorized")))
+            .then(attempt(ifNull(books::get, "Cannot find book")))
+            .then(attempt(ifYields(borrowings::markAsBorrowed, ALREADY_WITHDRAWN, "Book already withdrawn")))
+            .then(onSuccess(Book::getContent))
+            .then(collapse())
             .resolve();
     }
 
