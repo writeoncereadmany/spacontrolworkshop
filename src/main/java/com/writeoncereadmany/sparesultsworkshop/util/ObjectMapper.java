@@ -5,7 +5,7 @@ import com.writeoncereadmany.sparesultsworkshop.domain.Enquiry;
 
 public interface ObjectMapper {
 
-    Enquiry readObject(String representation);
+    Enquiry oldReadObject(String representation);
 
-    Result<Enquiry, String> readObject2(String representation);
+    Result<Enquiry, String> readObject(String representation);
 }

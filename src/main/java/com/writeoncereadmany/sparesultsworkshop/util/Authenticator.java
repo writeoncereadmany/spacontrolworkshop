@@ -4,7 +4,7 @@ import co.unruly.control.result.Result;
 import com.writeoncereadmany.sparesultsworkshop.domain.Enquiry;
 
 public interface Authenticator {
-    boolean authenticate(Enquiry enquiry);
+    boolean oldAuthenticate(Enquiry enquiry);
 
-    Result<Enquiry, String> authenticate2(Enquiry enquiry);
+    Result<Enquiry, String> authenticate(Enquiry enquiry);
 }

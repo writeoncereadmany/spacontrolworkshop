@@ -11,14 +11,13 @@ import java.util.Map;
 
 import static co.unruly.control.pair.Maps.entry;
 import static co.unruly.control.pair.Maps.mapOf;
-import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.ALREADY_WITHDRAWN;
-import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.AVAILABLE;
+import static co.unruly.control.result.Result.failure;
+import static co.unruly.control.result.Result.success;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 public class LibraryTest {
 
@@ -34,20 +33,18 @@ public class LibraryTest {
 
     @Test
     public void canBorrowABook() {
-        given(mapper.readObject(anyString())).willReturn(enquiry);
-        given(auth.authenticate(enquiry)).willReturn(true);
-        given(borrowings.markAsBorrowed(book)).willReturn(AVAILABLE);
+        given(mapper.readObject(anyString())).willReturn(success(enquiry));
+        given(auth.authenticate(enquiry)).willReturn(success(enquiry));
+        given(borrowings.markAsBorrowed(book)).willReturn(success(book));
 
         assertThat(
-            library.pipeBorrowNoErrorHandling("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
             is("lots of words"));
-
-        verify(borrowings).markAsBorrowed(book);
     }
 
     @Test
     public void reportsMalformedRequest() {
-        given(mapper.readObject(anyString())).willThrow(new RuntimeException("Cannot parse object"));
+        given(mapper.readObject(anyString())).willReturn(failure("Malformed request"));
 
         assertThat(
             library.borrow("i would like a book plz kthxbai"),
@@ -56,8 +53,8 @@ public class LibraryTest {
 
     @Test
     public void rejectsUnauthorizedUser() {
-        given(mapper.readObject(anyString())).willReturn(enquiry);
-        given(auth.authenticate(enquiry)).willReturn(false);
+        given(mapper.readObject(anyString())).willReturn(success(enquiry));
+        given(auth.authenticate(enquiry)).willReturn(failure("Unauthorized"));
 
         assertThat(
             library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
@@ -67,19 +64,19 @@ public class LibraryTest {
     @Test
     public void cannotLendUnknownBook() {
         Enquiry enquiry = new Enquiry("Tom", "letmein", "456");
-        given(mapper.readObject(anyString())).willReturn(enquiry);
-        given(auth.authenticate(enquiry)).willReturn(true);
+        given(mapper.readObject(anyString())).willReturn(success(enquiry));
+        given(auth.authenticate(enquiry)).willReturn(success(enquiry));
 
         assertThat(
             library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
-            is("Cannot find book"));
+            is("Book not found"));
     }
 
     @Test
     public void cannotLendBookIfAlreadyWithdrawn() {
-        given(mapper.readObject(anyString())).willReturn(enquiry);
-        given(auth.authenticate(enquiry)).willReturn(true);
-        given(borrowings.markAsBorrowed(book)).willReturn(ALREADY_WITHDRAWN);
+        given(mapper.readObject(anyString())).willReturn(success(enquiry));
+        given(auth.authenticate(enquiry)).willReturn(success(enquiry));
+        given(borrowings.markAsBorrowed(book)).willReturn(failure("Book already withdrawn"));
 
         assertThat(
             library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
