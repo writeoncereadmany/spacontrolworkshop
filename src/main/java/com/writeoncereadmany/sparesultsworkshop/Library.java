@@ -9,6 +9,9 @@ import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
 import java.util.Map;
 
 import static co.unruly.control.Piper.pipe;
+import static co.unruly.control.result.Resolvers.collapse;
+import static co.unruly.control.result.Transformers.attempt;
+import static co.unruly.control.result.Transformers.onSuccess;
 
 public class Library {
 
@@ -31,7 +34,12 @@ public class Library {
 
     public String borrow(String request) {
         return pipe(request)
-            // we need to do our various transformations here
+            .then(mapper::readObject)
+            .then(attempt(authenticator::authenticate))
+            .then(attempt(books::get))
+            .then(attempt(borrowings::markAsBorrowed))
+            .then(onSuccess(Book::getContent))
+            .then(collapse())
             .resolve();
     }
 
