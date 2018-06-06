@@ -1,8 +1,10 @@
 package com.writeoncereadmany.sparesultsworkshop;
 
+import co.unruly.control.Piper;
 import com.writeoncereadmany.sparesultsworkshop.domain.Book;
 import com.writeoncereadmany.sparesultsworkshop.domain.Books;
 import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
+import com.writeoncereadmany.sparesultsworkshop.domain.Enquiry;
 import com.writeoncereadmany.sparesultsworkshop.util.Authenticator;
 import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
 
@@ -34,6 +36,42 @@ public class Library {
         this.borrowings = borrowings;
     }
 
+    public String naiveBorrow(String request) {
+        Enquiry enquiry = mapper.readObject(request);
+        Book book = books.get(enquiry);
+        borrowings.markAsBorrowed(book);
+        return book.getContent();
+    }
+
+    public String pipeBorrowNoErrorHandling(String request) {
+        return pipe(request)
+            .then(mapper::readObject)
+            .then(books::get)
+            .peek(borrowings::markAsBorrowed)
+            .then(Book::getContent)
+            .resolve();
+    }
+
+    public String borrowWithTraditionalErrorHandling(String request) {
+        try {
+            Enquiry enquiry = mapper.readObject(request);
+            if(!authenticator.authenticate(enquiry)) {
+                return "Unauthorized";
+            }
+            Book book = books.get(enquiry);
+            if(book == null) {
+                return "Cannot find book";
+            }
+            Borrowings.Withdrawal withdrawalStatus = borrowings.markAsBorrowed(book);
+            if(withdrawalStatus == ALREADY_WITHDRAWN) {
+                return "Book already withdrawn";
+            }
+            return book.getContent();
+        } catch (RuntimeException ex) {
+            return "Malformed request";
+        }
+    }
+
     public String borrow(String request) {
         return pipe(request)
             .then(mapper::readObject2)
@@ -45,11 +83,11 @@ public class Library {
             .resolve();
     }
 
-    public String borrow2(String request) {
+    public String borrowWithFunctionalErrorHandling(String request) {
         return pipe(request)
-            .then(tryTo(mapper::readObject, __ -> "Cannot parse request"))
-            .then(attempt(ifFalse(authenticator::authenticate, "Not authorized")))
-            .then(attempt(ifNull(books::get, "Book not found")))
+            .then(tryTo(mapper::readObject, __ -> "Malformed request"))
+            .then(attempt(ifFalse(authenticator::authenticate, "Unauthorized")))
+            .then(attempt(ifNull(books::get, "Cannot find book")))
             .then(attempt(ifYields(borrowings::markAsBorrowed, ALREADY_WITHDRAWN, "Book already withdrawn")))
             .then(onSuccess(Book::getContent))
             .resolveWith(collapse());
