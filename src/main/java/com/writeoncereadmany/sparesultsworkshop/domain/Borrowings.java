@@ -7,6 +7,7 @@ public interface Borrowings {
 
     Withdrawal markAsBorrowed(Book toBorrow);
 
-    Result<Book, String> borrow2(Book toBorrow);
+    @Deprecated
+    Result<Book, String> newBorrow(Book toBorrow);
 
 }
