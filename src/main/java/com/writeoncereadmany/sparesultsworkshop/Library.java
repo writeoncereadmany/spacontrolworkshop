@@ -32,7 +32,10 @@ public class Library {
 
     public String borrow(String request) {
         return pipe(request)
-            // we need some steps in the middle here
+            .then(mapper::readObject)
+            .then(books::get)
+            .peek(borrowings::markAsBorrowed)
+            .then(Book::getContent)
             .resolve();
     }
 
