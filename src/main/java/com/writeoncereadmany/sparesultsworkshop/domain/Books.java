@@ -18,7 +18,7 @@ public class Books {
         return books.get(enquiry.getIsbn());
     }
 
-    public Result<Book, String> get2(Enquiry enquiry) {
+    public Result<Book, String> newGet(Enquiry enquiry) {
         return Optionals.either(
             Optional.ofNullable(books.get(enquiry.getIsbn())),
             book -> Result.success(book),

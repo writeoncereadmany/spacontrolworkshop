@@ -39,7 +39,7 @@ public class LibraryTest {
         given(borrowings.markAsBorrowed(book)).willReturn(AVAILABLE);
 
         assertThat(
-            library.pipeBorrowNoErrorHandling("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            library.functionalBorrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
             is("lots of words"));
 
         verify(borrowings).markAsBorrowed(book);
@@ -50,7 +50,7 @@ public class LibraryTest {
         given(mapper.readObject(anyString())).willThrow(new RuntimeException("Cannot parse object"));
 
         assertThat(
-            library.borrow("i would like a book plz kthxbai"),
+            library.functionalBorrow("i would like a book plz kthxbai"),
             is("Malformed request"));
     }
 
@@ -60,7 +60,7 @@ public class LibraryTest {
         given(auth.authenticate(enquiry)).willReturn(false);
 
         assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            library.functionalBorrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
             is("Unauthorized"));
     }
 
@@ -71,7 +71,7 @@ public class LibraryTest {
         given(auth.authenticate(enquiry)).willReturn(true);
 
         assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
+            library.functionalBorrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
             is("Cannot find book"));
     }
 
@@ -82,7 +82,7 @@ public class LibraryTest {
         given(borrowings.markAsBorrowed(book)).willReturn(ALREADY_WITHDRAWN);
 
         assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            library.functionalBorrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
             is("Book already withdrawn"));
 
     }

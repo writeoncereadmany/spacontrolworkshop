@@ -1,6 +1,5 @@
 package com.writeoncereadmany.sparesultsworkshop;
 
-import co.unruly.control.Piper;
 import com.writeoncereadmany.sparesultsworkshop.domain.Book;
 import com.writeoncereadmany.sparesultsworkshop.domain.Books;
 import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
@@ -36,23 +35,14 @@ public class Library {
         this.borrowings = borrowings;
     }
 
-    public String naiveBorrow(String request) {
+    public String noErrorHandling(String request) {
         Enquiry enquiry = mapper.readObject(request);
         Book book = books.get(enquiry);
         borrowings.markAsBorrowed(book);
         return book.getContent();
     }
 
-    public String pipeBorrowNoErrorHandling(String request) {
-        return pipe(request)
-            .then(mapper::readObject)
-            .then(books::get)
-            .peek(borrowings::markAsBorrowed)
-            .then(Book::getContent)
-            .resolve();
-    }
-
-    public String borrowWithTraditionalErrorHandling(String request) {
+    public String traditionalErrorHandling(String request) {
         try {
             Enquiry enquiry = mapper.readObject(request);
             if(!authenticator.authenticate(enquiry)) {
@@ -72,18 +62,27 @@ public class Library {
         }
     }
 
-    public String borrow(String request) {
+    public String pipeWithNoErrorHandling(String request) {
         return pipe(request)
-            .then(mapper::readObject2)
-            .then(attempt(authenticator::authenticate2))
-            .then(attempt(books::get2))
-            .then(attempt(borrowings::borrow2))
+            .then(mapper::readObject)
+            .then(books::get)
+            .peek(borrowings::markAsBorrowed)
+            .then(Book::getContent)
+            .resolve();
+    }
+
+    public String functionalBorrowWithModifiedAPIs(String request) {
+        return pipe(request)
+            .then(mapper::newReadObject)
+            .then(attempt(authenticator::newAuthenticate))
+            .then(attempt(books::newGet))
+            .then(attempt(borrowings::newBorrow))
             .then(onSuccess(Book::getContent))
             .then(collapse())
             .resolve();
     }
 
-    public String borrowWithFunctionalErrorHandling(String request) {
+    public String functionalBorrow(String request) {
         return pipe(request)
             .then(tryTo(mapper::readObject, __ -> "Malformed request"))
             .then(attempt(ifFalse(authenticator::authenticate, "Unauthorized")))

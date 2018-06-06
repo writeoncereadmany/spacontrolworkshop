@@ -7,5 +7,5 @@ public interface ObjectMapper {
 
     Enquiry readObject(String representation);
 
-    Result<Enquiry, String> readObject2(String representation);
+    Result<Enquiry, String> newReadObject(String representation);
 }
