@@ -5,7 +5,7 @@ import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
 import com.writeoncereadmany.sparesultsworkshop.domain.Enquiry;
 import com.writeoncereadmany.sparesultsworkshop.util.Authenticator;
 import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Map;
 
