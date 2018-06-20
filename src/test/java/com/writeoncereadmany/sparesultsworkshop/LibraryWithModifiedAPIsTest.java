@@ -5,7 +5,7 @@ import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
 import com.writeoncereadmany.sparesultsworkshop.domain.Enquiry;
 import com.writeoncereadmany.sparesultsworkshop.util.Authenticator;
 import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 import java.util.Map;
 
@@ -19,7 +19,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
-public class LibraryTestWithModifiedAPIs {
+public class LibraryWithModifiedAPIsTest {
 
     private static final Book book = new Book("123", "How To Cook For Forty Humans", "Kang", "lots of words");
     public static final Enquiry enquiry = new Enquiry("Tom", "letmein", "123");
