@@ -6,6 +6,7 @@ import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
 import com.writeoncereadmany.sparesultsworkshop.util.Authenticator;
 import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
 
+import java.util.List;
 import java.util.Map;
 
 import static co.unruly.control.Piper.pipe;
@@ -25,7 +26,7 @@ public class Library {
     public Library(
         ObjectMapper mapper,
         Authenticator authenticator,
-        Map<String, Book> books,
+        Map<String, List<Book>> books,
         Borrowings borrowings
     ) {
         this.mapper = mapper;

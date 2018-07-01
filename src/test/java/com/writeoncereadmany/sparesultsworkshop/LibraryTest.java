@@ -1,5 +1,6 @@
 package com.writeoncereadmany.sparesultsworkshop;
 
+import co.unruly.control.pair.Maps;
 import com.writeoncereadmany.sparesultsworkshop.domain.Book;
 import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
 import com.writeoncereadmany.sparesultsworkshop.domain.Enquiry;
@@ -7,12 +8,14 @@ import com.writeoncereadmany.sparesultsworkshop.util.Authenticator;
 import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static co.unruly.control.pair.Maps.entry;
 import static co.unruly.control.pair.Maps.mapOf;
 import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.ALREADY_WITHDRAWN;
 import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.AVAILABLE;
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -27,7 +30,7 @@ public class LibraryTest {
 
     private final ObjectMapper mapper = mock(ObjectMapper.class);
     private final Authenticator auth = mock(Authenticator.class);
-    private final Map<String, Book> books = mapOf(entry(book.getIsbn(), book));
+    private final Map<String, List<Book>> books = mapOf(entry(book.getIsbn(), asList(book)));
     private final Borrowings borrowings = mock(Borrowings.class);
 
     private final Library library = new Library(mapper, auth, books, borrowings);
@@ -73,6 +76,22 @@ public class LibraryTest {
         assertThat(
             library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
             is("Cannot find book"));
+    }
+
+    @Test
+    public void cannotLendBookWithAmbiguousIsbn() {
+        Map<String, List<Book>> books = mapOf(entry("456", asList(
+            new Book("456", "a book", "someone", "some words"),
+            new Book("456", "a different book", "someone else", "something interesting")
+        )));
+        Library library = new Library(mapper, auth, books, borrowings);
+        Enquiry enquiry = new Enquiry("Tom", "letmein", "456");
+        given(mapper.readObject(anyString())).willReturn(enquiry);
+        given(auth.authenticate(enquiry)).willReturn(true);
+
+        assertThat(
+            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
+            is("Book ISBN ambiguous"));
     }
 
     @Test
