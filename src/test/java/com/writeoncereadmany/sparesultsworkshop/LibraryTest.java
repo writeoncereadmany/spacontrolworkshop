@@ -8,11 +8,13 @@ import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static co.unruly.control.pair.Maps.entry;
 import static co.unruly.control.pair.Maps.mapOf;
 import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.ALREADY_WITHDRAWN;
 import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.AVAILABLE;
+import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -39,8 +41,8 @@ public class LibraryTest {
         given(borrowings.markAsBorrowed(book)).willReturn(AVAILABLE);
 
         assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
-            is("lots of words"));
+            library.borrowAll("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            is(asList("lots of words")));
 
         verify(borrowings).markAsBorrowed(book);
     }
@@ -50,8 +52,8 @@ public class LibraryTest {
         given(mapper.readObject(anyString())).willThrow(new RuntimeException("Cannot parse object"));
 
         assertThat(
-            library.borrow("i would like a book plz kthxbai"),
-            is("Malformed request"));
+            library.borrowAll("i would like a book plz kthxbai"),
+            is(asList("Malformed request")));
     }
 
     @Test
@@ -60,8 +62,8 @@ public class LibraryTest {
         given(auth.authenticate(enquiry)).willReturn(false);
 
         assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
-            is("Unauthorized"));
+            library.borrowAll("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            is(asList("Unauthorized")));
     }
 
     @Test
@@ -71,8 +73,8 @@ public class LibraryTest {
         given(auth.authenticate(enquiry)).willReturn(true);
 
         assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
-            is("Cannot find book"));
+            library.borrowAll("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"456\" }"),
+            is(asList("Cannot find book")));
     }
 
     @Test
@@ -82,8 +84,7 @@ public class LibraryTest {
         given(borrowings.markAsBorrowed(book)).willReturn(ALREADY_WITHDRAWN);
 
         assertThat(
-            library.borrow("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
-            is("Book already withdrawn"));
-
+            library.borrowAll("{ \"user\": \"Tom\", \"password\": \"letmein\", \"isbn\": \"123\" }"),
+            is(asList("Book already withdrawn")));
     }
 }

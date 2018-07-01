@@ -6,12 +6,17 @@ import com.writeoncereadmany.sparesultsworkshop.domain.Borrowings;
 import com.writeoncereadmany.sparesultsworkshop.util.Authenticator;
 import com.writeoncereadmany.sparesultsworkshop.util.ObjectMapper;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static co.unruly.control.Piper.pipe;
+import static co.unruly.control.result.Introducers.*;
 import static co.unruly.control.result.Resolvers.collapse;
 import static co.unruly.control.result.Transformers.attempt;
 import static co.unruly.control.result.Transformers.onSuccess;
+import static com.writeoncereadmany.sparesultsworkshop.domain.Borrowings.Withdrawal.ALREADY_WITHDRAWN;
+import static java.util.stream.Collectors.toList;
 
 public class Library {
 
@@ -32,21 +37,20 @@ public class Library {
         this.borrowings = borrowings;
     }
 
-    public String borrow(String request) {
-        return pipe(request)
-            // We need to do various transformations on our data here
-            .resolve();
+    public List<String> borrowAll(String ...requests) {
+        return Stream.of(requests)
+            .collect(toList());
     }
 
     /**
-     * We keep the previous implementation for reference, and for comparison once we're done
+     * We keep the previous implementation for reference
      */
-    public String borrowUsingModifiedApis(String request) {
+    public String borrow(String request) {
         return pipe(request)
-            .then(mapper::newReadObject)
-            .then(attempt(authenticator::newAuthenticate))
-            .then(attempt(books::newGet))
-            .then(attempt(borrowings::newBorrow))
+            .then(tryTo(mapper::readObject, __ -> "Malformed request"))
+            .then(attempt(ifFalse(authenticator::authenticate, "Unauthorized")))
+            .then(attempt(ifNull(books::get, "Cannot find book")))
+            .then(attempt(ifYields(borrowings::markAsBorrowed, ALREADY_WITHDRAWN, "Book already withdrawn")))
             .then(onSuccess(Book::getContent))
             .then(collapse())
             .resolve();
