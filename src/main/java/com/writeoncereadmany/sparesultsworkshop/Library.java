@@ -39,6 +39,12 @@ public class Library {
 
     public List<String> borrowAll(String ...requests) {
         return Stream.of(requests)
+            .map(tryTo(mapper::readObject, __ -> "Malformed request"))
+            .map(attempt(ifFalse(authenticator::authenticate, "Unauthorized")))
+            .map(attempt(ifNull(books::get, "Cannot find book")))
+            .map(attempt(ifYields(borrowings::markAsBorrowed, ALREADY_WITHDRAWN, "Book already withdrawn")))
+            .map(onSuccess(Book::getContent))
+            .map(collapse())
             .collect(toList());
     }
 
